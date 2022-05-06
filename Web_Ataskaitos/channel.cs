@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text;
 
 namespace Web_Ataskaitos
 {
@@ -45,14 +46,13 @@ namespace Web_Ataskaitos
                     channelName = dn.GetValue(0).ToString();
                 }
                 dn.Close();
-
+                Encoding encoding = Encoding.UTF8;
                 string json = (new WebClient()).DownloadString("http://82.135.174.195:80/json/get_listings.php?channel=" + channel_id + "&secondsAgo=259200");
-
                 var match = Regex.Match(json, @"\{(.|\s)*\}");
                 string test = match.Value;
                 Model model = JsonConvert.DeserializeObject<Model>(match.Value);
                 List<Datum> datum = model.data;
-
+                
                 string deltaStart = String.Empty;
                 string channelId = String.Empty;
                 string timeStart = String.Empty;
@@ -81,7 +81,8 @@ namespace Web_Ataskaitos
                     {
                         title = datum[i].title.czch;
                     }
-
+                    byte[] bytes = Encoding.GetEncoding("Cyrillic").GetBytes(title);
+                    title = Encoding.ASCII.GetString(bytes);
                     deltaStart = datum[i].delta_start;
                     channelId = datum[i].channel_id;
                     timeStart = Convert.ToDateTime(datum[i].time_start).ToString();
