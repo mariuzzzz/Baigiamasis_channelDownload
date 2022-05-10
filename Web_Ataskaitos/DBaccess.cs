@@ -16,11 +16,11 @@ namespace Web_Ataskaitos
         private static SqlDataAdapter adapter = new SqlDataAdapter();
         public SqlTransaction DbTran;
 
-
+#if DEBUG
         private static string strConnString = "Data Source=(local);Initial Catalog=Ataskaitos;Integrated Security=True";
-
-        //private static string strConnString = @"Server=C0983\SQLEXPRESS;Database=Ataskaitos;Trusted_Connection=True;";
-
+#else
+        private static string strConnString = @"Server=C0983\SQLEXPRESS;Database=Ataskaitos;Trusted_Connection=True;";
+#endif
 
         public void createConn()
         {

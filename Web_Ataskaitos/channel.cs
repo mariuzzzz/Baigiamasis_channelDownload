@@ -19,8 +19,11 @@ namespace Web_Ataskaitos
 
         public void channel_Load()
         {
+#if DEBUG
             SqlConnection con = new SqlConnection("Data Source=(local);Initial Catalog=Ataskaitos;Integrated Security=True");
-            //SqlConnection con = new SqlConnection(@"Server=C0983\SQLEXPRESS;Database=Ataskaitos;Trusted_Connection=True;");
+#else
+            SqlConnection con = new SqlConnection(@"Server=C0983\SQLEXPRESS;Database=Ataskaitos;Trusted_Connection=True;");
+#endif
             con.Open();
             SqlCommand getTable = new SqlCommand("select * from channel_list", con);
             SqlDataAdapter dataAdapter = new SqlDataAdapter(getTable);
@@ -62,6 +65,8 @@ namespace Web_Ataskaitos
                 string showId = String.Empty;
                 string moderStatusStart = String.Empty;
                 string moderStatusStop = String.Empty;
+                string errorCodeStart = String.Empty;
+                string errorCodeStop = String.Empty;
 
                 for (int i = 0; i < model.data.Count; i++)
                 {
@@ -91,8 +96,10 @@ namespace Web_Ataskaitos
                     showId = datum[i].id;
                     moderStatusStart = datum[i].moder_status_start;
                     moderStatusStop = datum[i].moder_status_stop;
+                    errorCodeStart = GetStartErrorCode(moderStatusStart);
+                    errorCodeStop = GetStopErrorCode(moderStatusStop);
 
-                    
+
 
                     string querry = "select * from show_details where show_id = '" + showId + "'";
                     //string deleteQ = "delete from show_details where time_start < DATEADD(day, -2, GETDATE())";
@@ -109,7 +116,7 @@ namespace Web_Ataskaitos
                         {
                             dBaccess.closeConn();
 
-                            SqlCommand updateCommand = new SqlCommand("update show_details set channel_ID = @channelId, show_id = @showId, time_start = @timeStart, time_stop = @timeStop, title = @title, delta_start = @deltaStart, delta_stop = @deltaStop, moder_status_start = @moderStatusStart, moder_status_stop = @moderStatusStop, channel_name = @channelName where show_id = '" + showId + "' ");
+                            SqlCommand updateCommand = new SqlCommand("update show_details set channel_ID = @channelId, show_id = @showId, time_start = @timeStart, time_stop = @timeStop, title = @title, delta_start = @deltaStart, delta_stop = @deltaStop, moder_status_start = @moderStatusStart, moder_status_stop = @moderStatusStop, channel_name = @channelName, start_error_type = @errorCodeStart, stop_error_type = @errorCodeStop where show_id = '" + showId + "' ");
                             updateCommand.Parameters.AddWithValue("@channelId", @channelId);
                             updateCommand.Parameters.AddWithValue("@showId", @showId);
                             updateCommand.Parameters.AddWithValue("@timeStart", @timeStart);
@@ -132,12 +139,20 @@ namespace Web_Ataskaitos
                                 updateCommand.Parameters.Add("@moderStatusStop", DBNull.Value);
                             else
                                 updateCommand.Parameters.Add("@moderStatusStop", @moderStatusStop);
+                            if (string.IsNullOrEmpty(errorCodeStart))
+                                updateCommand.Parameters.Add("@errorCodeStart", DBNull.Value);
+                            else
+                                updateCommand.Parameters.Add("@errorCodeStart", @errorCodeStart);
+                            if (string.IsNullOrEmpty(errorCodeStop))
+                                updateCommand.Parameters.Add("@errorCodeStop", DBNull.Value);
+                            else
+                                updateCommand.Parameters.Add("@errorCodeStop", @errorCodeStop);
                             dBaccess.executeQuery(updateCommand);
                         }
                         else
                         {
                             dBaccess.closeConn();
-                            SqlCommand insertCommand = new SqlCommand("insert into show_details(channel_ID, show_id, time_start, time_stop, title, delta_start, delta_stop, moder_status_start, moder_status_stop, channel_name) values(@channelId, @showId, @timeStart, @timeStop, @title, @deltaStart, @deltaStop, @moderStatusStart, @moderStatusStop, @channelName)");
+                            SqlCommand insertCommand = new SqlCommand("insert into show_details(channel_ID, show_id, time_start, time_stop, title, delta_start, delta_stop, moder_status_start, moder_status_stop, channel_name, start_error_type, stop_error_type) values(@channelId, @showId, @timeStart, @timeStop, @title, @deltaStart, @deltaStop, @moderStatusStart, @moderStatusStop, @channelName, @errorCodeStart, @errorCodeStop)");
                             insertCommand.Parameters.AddWithValue("@channelId", @channelId);
                             insertCommand.Parameters.AddWithValue("@showId", @showId);
                             insertCommand.Parameters.AddWithValue("@timeStart", @timeStart);
@@ -160,6 +175,14 @@ namespace Web_Ataskaitos
                                 insertCommand.Parameters.Add("@moderStatusStop", DBNull.Value);
                             else
                                 insertCommand.Parameters.Add("@moderStatusStop", @moderStatusStop);
+                            if (string.IsNullOrEmpty(errorCodeStart))
+                                insertCommand.Parameters.Add("@errorCodeStart", DBNull.Value);
+                            else
+                                insertCommand.Parameters.Add("@errorCodeStart", @errorCodeStart);
+                            if (string.IsNullOrEmpty(errorCodeStop))
+                                insertCommand.Parameters.Add("@errorCodeStop", DBNull.Value);
+                            else
+                                insertCommand.Parameters.Add("@errorCodeStop", @errorCodeStop);
                             dBaccess.executeQuery(insertCommand);
                         }
                     }
@@ -196,6 +219,46 @@ namespace Web_Ataskaitos
                     dBaccess.executeQuery(deleteCommand);*/
                 }
                 
+            }
+        }
+        public string GetStartErrorCode(string moderStatusStart)
+        {
+            switch (moderStatusStart)
+            {
+                case "1":
+                    return "Additional Event ID";
+                case "2":
+                    return "Excluded Event ID";
+                case "3":
+                    return "Schedule inaccurate";
+                case "4":
+                    return "Interupted Sat signal";
+                case "5":
+                    return "Accurate time delayed";
+                case "6":
+                    return "Grey screens";
+                default:
+                    return "";
+            }
+        }
+        public string GetStopErrorCode(string moderStatusStop)
+        {
+            switch (moderStatusStop)
+            {
+                case "1":
+                    return "Additional Event ID";
+                case "2":
+                    return "Excluded Event ID";
+                case "3":
+                    return "Schedule inaccurate";
+                case "4":
+                    return "Interupted Sat signal";
+                case "5":
+                    return "Accurate time delayed";
+                case "6":
+                    return "Grey screens";
+                default:
+                    return "";
             }
         }
     }

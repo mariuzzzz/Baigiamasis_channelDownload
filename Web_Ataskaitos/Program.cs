@@ -22,11 +22,12 @@ namespace Web_Ataskaitos
             channel chan = new channel();
             
             chan.channel_Load();
+
            // SetTimer();
 
            // Console.WriteLine("\nPress the Enter key to exit the application...\n");
             //Console.WriteLine("The application started at {0:HH:mm:ss.fff}", DateTime.Now);
-           // Console.ReadLine();
+            //Console.ReadLine();
             
           //  bTimer.Stop();
            // bTimer.Dispose();
